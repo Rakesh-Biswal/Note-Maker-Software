@@ -4,6 +4,7 @@ import Spinner from "./ui/spinner"
 import ReminderModal from "./ui/reminder-modal"
 import { uploadImageToFirebase } from "@/lib/image-upload"
 import { downloadNotePDF } from "@/lib/pdf-export"
+import ReminderPromotionPopup from "./ui/reminder-promotion-popup"
 
 export default function NoteCard({ note, onUpdated, onDeleted }) {
   const [title, setTitle] = useState(note.title || "")
@@ -21,6 +22,7 @@ export default function NoteCard({ note, onUpdated, onDeleted }) {
   const [settingReminder, setSettingReminder] = useState(false)
   const [exportingPdf, setExportingPdf] = useState(false)
   const [showReminderTag, setShowReminderTag] = useState(false)
+  const [showReminderPopup, setShowReminderPopup] = useState(false)
   const fileInputRef = useRef(null)
   const TRUNCATE_AT = 220
 
@@ -62,6 +64,22 @@ export default function NoteCard({ note, onUpdated, onDeleted }) {
       return () => clearTimeout(timer)
     }
   }, [note.reminder, editing])
+
+  useEffect(() => {
+    // Only show popup if note has no reminder, not editing, and user is interacting
+    if (!note.reminder && !editing && !showReminderPopup) {
+      const timer = setTimeout(() => {
+        setShowReminderPopup(true)
+      }, 5000) // 5 seconds delay
+
+      return () => clearTimeout(timer)
+    }
+  }, [note.reminder, editing, showReminderPopup])
+
+  const handlePopupReminderSet = () => {
+    setShowReminderPopup(false)
+    setShowReminderModal(true)
+  }
 
   async function save() {
     try {
@@ -217,7 +235,7 @@ export default function NoteCard({ note, onUpdated, onDeleted }) {
 
   return (
     <div className="border rounded-lg p-4 transition bg-white shadow-sm hover:shadow-md relative">
-      
+
       <div className="absolute top-3 right-3">
         {editing ? (
           <button
@@ -255,7 +273,7 @@ export default function NoteCard({ note, onUpdated, onDeleted }) {
           </div>
         ) : (
           <div className="relative">
-            
+
             {showReminderTag && (
               <div className="absolute -top-8 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-lg shadow-lg animate-bounce">
                 <div className="flex items-center gap-1">
@@ -264,7 +282,7 @@ export default function NoteCard({ note, onUpdated, onDeleted }) {
                   </svg>
                   <span>Reminder</span>
                 </div>
-                
+
                 <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-blue-500 rotate-45"></div>
               </div>
             )}
@@ -272,7 +290,7 @@ export default function NoteCard({ note, onUpdated, onDeleted }) {
             <button
               onClick={() => {
                 setShowReminderModal(true)
-                setShowReminderTag(false) 
+                setShowReminderTag(false)
               }}
               className="text-gray-400 hover:text-blue-600 transition-colors relative"
               title="Set reminder"
@@ -456,6 +474,12 @@ export default function NoteCard({ note, onUpdated, onDeleted }) {
         onRemoveReminder={handleRemoveReminder}
       />
 
+      <ReminderPromotionPopup
+        isOpen={showReminderPopup}
+        onClose={() => setShowReminderPopup(false)}
+        onSetReminder={handlePopupReminderSet}
+      />
+
       {toast.show && (
         <div className={`mt-3 p-3 rounded-lg text-sm ${toast.kind === "error"
           ? "bg-red-50 text-red-700 border border-red-200"
@@ -485,6 +509,7 @@ export function NoteCardSkeleton() {
         <div className="h-9 w-20 bg-gray-200 rounded animate-pulse" />
         <div className="h-9 w-24 bg-gray-200 rounded animate-pulse" />
       </div>
+
     </div>
   )
 }
