@@ -1,15 +1,14 @@
-
 {
-  "version": 3,
+  "version": 2,
+  "functions": {
+    "api/cron/process-reminders.js": {
+      "maxDuration": 60
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/process-reminders",
       "schedule": "* * * * *"
     }
-  ],
-  "functions": {
-    "app/api/cron/process-reminders/route.js": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }
